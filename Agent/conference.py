@@ -24,6 +24,11 @@ class Conference:
         self.ferror = 0.
         self.herror = 0.
 
+    def reset(self):
+        """ Reset conference """
+        self.receive_papers = {}
+        self.reviewers = []
+
     def call_for_papers(self, sci_lst):
         """
         announce acceptance rate, and collect papers from a list of Scientists sci_lst
@@ -111,7 +116,7 @@ class Conference:
         for p in self.acc_papers:
             if p in acc:
                 correct += 1
-        self.ferror = 1 - correct / len(acc)
+        self.ferror = 100 * (1 - correct / len(acc))
 
     def update_herror(self):
         """ avg hamming distance error"""
