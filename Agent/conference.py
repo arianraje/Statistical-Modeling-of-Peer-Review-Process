@@ -63,7 +63,7 @@ class Conference:
         decide the acc_papers and the rej_papers
         the middle set are randomly accepted
         """
-        cutoff = np.percentile(list(agg_review_map.values()), self.ar)
+        cutoff = np.percentile(list(agg_review_map.values()), (1-self.ar) * 100)
         middle_set = []
         acc_papers = []
         rej_papers = []

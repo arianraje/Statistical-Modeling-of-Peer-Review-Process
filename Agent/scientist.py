@@ -4,12 +4,12 @@ import numpy as np
 import math
 
 r_mean = 5.
-r_sigma = 1
-b_sigma = 1
+r_sigma = 2
 b_mean = 0.
+b_sigma = 2
 theta_0 = 0.
 theta_1 = 1.
-r_c = 1.
+r_c = 0.01
 
 
 class Scientist:
@@ -33,8 +33,8 @@ class Scientist:
         """
         mu = p.pq + self.bias
         my_cap = self.paper.pq if p.topic in self.topic else 0.
-        sigma = min(2, 1. / abs(p.pq - 5)) + 1. / (theta_0 * self.experience + theta_1 * my_cap + r_c)
-        return np.random.normal(mu, sigma)
+        sigma = min(1.5, 0.1 / abs(p.pq - 5)) + 1. / (theta_0 * self.experience + theta_1 * my_cap + r_c)
+        return np.clip(np.random.normal(mu, sigma), 0, 10)
 
     def write_paper(self):
         """
@@ -51,7 +51,7 @@ class Scientist:
         if conf.acc_papers:
             conf_avg_score = np.mean([self.review(p) for p in conf.acc_papers])
         else:
-            return 1. if np.random.uniform() >= 0.8 else 0.
+            return 1. if np.random.uniform() >= 0.2 else 0.
         return 1. / (1 + math.exp(-my_score + conf_avg_score))
 
     def submit(self, conf: Conference):
