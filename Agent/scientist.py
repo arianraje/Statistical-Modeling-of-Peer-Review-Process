@@ -50,7 +50,7 @@ class Scientist:
             conf_avg_score = np.mean([self.review(p) for p in conf.acc_papers])
         else:
             return 1. if np.random.uniform() >= init_belief_pecent else 0.
-        return 1. / (1 + math.exp(-my_score + conf_avg_score))
+        return 1. / (1 + belif_c * math.exp(-my_score + conf_avg_score))
 
     def submit(self, conf: Conference):
         """

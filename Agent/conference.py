@@ -58,6 +58,9 @@ class Conference:
         decide the acc_papers and the rej_papers
         the middle set are randomly accepted
         """
+        peer_review_results = list(agg_review_map.values())
+        if not peer_review_results:
+            return [], []
         cutoff = np.percentile(list(agg_review_map.values()), (1 - self.ar) * 100)
         middle_set = []
         acc_papers = []
@@ -97,21 +100,26 @@ class Conference:
 
     def update_prestige(self):
         """return the conference prestige"""
-        self.prestige = -alpha * self.ar + gamma * np.mean([p.author.resources for p in self.acc_papers])
+        rewd = float(self.reward) / self.prestige
+        self.prestige = max(0.001, -alpha * self.ar + gamma * np.mean([p.author.resources for p in self.acc_papers]))
+        self.reward = self.prestige * rewd
 
     def calc_pq(self):
         """return the acc papers true quality"""
-        return np.mean([p.pq for p in self.acc_papers])
+        return np.mean([p.pq for p in self.acc_papers]) if self.acc_papers else 0.
 
     def update_ferror(self):
         """ fraction of paper that get accepted while it shouldn't have """
         true_acc, _ = self.decide(self.receive_papers)
-        c_acc = set(self.acc_papers)
-        correct = 0
-        for p in true_acc:
-            if p in c_acc:
-                correct += 1
-        self.ferror = 100 * (1 - correct / len(true_acc))
+        if true_acc:
+            c_acc = set(self.acc_papers)
+            correct = 0
+            for p in true_acc:
+                if p in c_acc:
+                    correct += 1
+            self.ferror = 100 * (1 - correct / len(true_acc))
+        else:
+            self.ferror = 0.
 
     def update_herror(self):
         """ avg hamming distance error"""
@@ -119,4 +127,4 @@ class Conference:
                                                                  reverse=True))}
         actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=lambda item: item[1],
                                                                    reverse=True))}
-        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order])
+        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order]) if true_order else 0.
