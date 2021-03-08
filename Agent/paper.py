@@ -1,6 +1,5 @@
 import numpy as np
-
-pq_sigma = 1.5
+from all_params import *
 
 
 class Paper:
@@ -8,7 +7,11 @@ class Paper:
     def __init__(self, author, topic):
         self.author = author
         self.topic = topic
-        self.pq = np.clip(np.random.normal(self.author.resources, pq_sigma), 0, 10)
+        self.pq = np.random.normal(self.author.resources, pq_sigma)
+        if self.pq > 10:
+            self.pq -= np.random.uniform(1, 2) * (self.pq - 10)
+        elif self.pq < 0:
+            self.pq -= np.random.uniform(1, 2) * self.pq
         self.review_results = []
         self.citation = 0
 

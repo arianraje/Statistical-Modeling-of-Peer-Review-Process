@@ -1,16 +1,11 @@
 import numpy as np
 import math
-
-init_prestige = 5.
-alpha = 10.
-beta = 0.
-gamma = 1.
-N = 1
+from all_params import *
 
 
 class Conference:
     """A instance of a conference"""
-    def __init__(self, acc_rate, reward=1., cost=2.):
+    def __init__(self, acc_rate, c_reward, c_cost):
         self.ar = acc_rate
         self.num_of_papers = 0
         self.prestige = init_prestige
@@ -18,8 +13,8 @@ class Conference:
         self.rej_papers = []
         self.receive_papers = {}
         self.reviewers = []
-        self.reward = self.prestige * reward
-        self.cost = cost
+        self.reward = self.prestige * c_reward
+        self.cost = c_cost
         self.agg_review_map = None
         self.ferror = 0.
         self.herror = 0.
@@ -63,7 +58,7 @@ class Conference:
         decide the acc_papers and the rej_papers
         the middle set are randomly accepted
         """
-        cutoff = np.percentile(list(agg_review_map.values()), (1-self.ar) * 100)
+        cutoff = np.percentile(list(agg_review_map.values()), (1 - self.ar) * 100)
         middle_set = []
         acc_papers = []
         rej_papers = []
@@ -74,7 +69,7 @@ class Conference:
                 rej_papers.append(p)
             else:
                 middle_set.append(p)
-        acc_num = math.floor(self.ar * self.num_of_papers)
+        acc_num = math.ceil(self.ar * self.num_of_papers)
         if len(acc_papers) < acc_num and middle_set:
             lucky_p = np.random.permutation(len(middle_set))[:acc_num - len(acc_papers)]
             unlucky_p = np.random.permutation(len(middle_set))[acc_num - len(acc_papers):]
@@ -110,20 +105,18 @@ class Conference:
 
     def update_ferror(self):
         """ fraction of paper that get accepted while it shouldn't have """
-        acc, _ = self.decide(self.receive_papers)
-        acc = set(acc)
+        true_acc, _ = self.decide(self.receive_papers)
+        c_acc = set(self.acc_papers)
         correct = 0
-        for p in self.acc_papers:
-            if p in acc:
+        for p in true_acc:
+            if p in c_acc:
                 correct += 1
-        self.ferror = 100 * (1 - correct / len(acc))
+        self.ferror = 100 * (1 - correct / len(true_acc))
 
     def update_herror(self):
         """ avg hamming distance error"""
-        def get_quality(d):
-            return d[1]
-        true_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.receive_papers.items(), key=get_quality,
+        true_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.receive_papers.items(), key=lambda item: item[1],
                                                                  reverse=True))}
-        actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=get_quality,
+        actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=lambda item: item[1],
                                                                    reverse=True))}
         self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order])

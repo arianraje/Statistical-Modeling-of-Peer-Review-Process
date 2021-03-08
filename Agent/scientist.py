@@ -2,14 +2,7 @@ from .paper import Paper
 from .conference import Conference
 import numpy as np
 import math
-
-r_mean = 5.
-r_sigma = 2
-b_mean = 0.
-b_sigma = 2
-theta_0 = 0.
-theta_1 = 1.
-r_c = 0.01
+from all_params import *
 
 
 class Scientist:
@@ -33,8 +26,13 @@ class Scientist:
         """
         mu = p.pq + self.bias
         my_cap = self.paper.pq if p.topic in self.topic else 0.
-        sigma = min(1.5, 0.1 / abs(p.pq - 5)) + 1. / (theta_0 * self.experience + theta_1 * my_cap + r_c)
-        return np.clip(np.random.normal(mu, sigma), 0, 10)
+        sigma = min(max_abtry, abtry_c / abs(p.pq - 5)) + 1. / (theta_0 * self.experience + theta_1 * my_cap + r_c)
+        r = np.random.normal(mu, sigma)
+        if r > 10:
+            r -= np.random.uniform(1, 1.5) * (r - 10)
+        elif r < 0:
+            r -= np.random.uniform(1, 1.5) * r
+        return r
 
     def write_paper(self):
         """
@@ -51,7 +49,7 @@ class Scientist:
         if conf.acc_papers:
             conf_avg_score = np.mean([self.review(p) for p in conf.acc_papers])
         else:
-            return 1. if np.random.uniform() >= 0.2 else 0.
+            return 1. if np.random.uniform() >= init_belief_pecent else 0.
         return 1. / (1 + math.exp(-my_score + conf_avg_score))
 
     def submit(self, conf: Conference):
@@ -69,6 +67,6 @@ class Scientist:
         """
         pass
 
-    def update_resources(self, reward):
+    def update_resources(self, r):
         """update the resources when the paper result come out"""
         pass
