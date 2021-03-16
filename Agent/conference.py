@@ -16,7 +16,7 @@ class Conference:
         self.reward = self.prestige * c_reward
         self.cost = c_cost
         self.agg_review_map = None
-        self.ferror = 0.
+        self.precision = 0.
         self.herror = 0.
 
     def reset(self):
@@ -35,6 +35,7 @@ class Conference:
                 self.reviewers.append(sci)
                 sci.experience += 1
         self.num_of_papers = len(self.receive_papers)
+        return self.num_of_papers
 
     def recuite_reviewers(self):
         """ Recruite reviewers, make sure that each paper provide N reviewers
@@ -72,6 +73,7 @@ class Conference:
                 rej_papers.append(p)
             else:
                 middle_set.append(p)
+        # can ignore this, very unlikely
         acc_num = math.ceil(self.ar * self.num_of_papers)
         if len(acc_papers) < acc_num and middle_set:
             lucky_p = np.random.permutation(len(middle_set))[:acc_num - len(acc_papers)]
@@ -95,31 +97,34 @@ class Conference:
     def update(self):
         """ Update results of this conference"""
         self.update_prestige()
-        self.update_ferror()
+        self.update_precision()
+        # self.update_recall()
         self.update_herror()
 
     def update_prestige(self):
         """return the conference prestige"""
         rewd = float(self.reward) / self.prestige
-        self.prestige = max(0.001, -alpha * self.ar + gamma * np.mean([p.author.resources for p in self.acc_papers]))
+        acc_author_resources = gamma * np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
+        self.prestige = max(2.1, -alpha * self.ar + acc_author_resources)
         self.reward = self.prestige * rewd
 
     def calc_pq(self):
         """return the acc papers true quality"""
-        return np.mean([p.pq for p in self.acc_papers]) if self.acc_papers else 0.
+        return np.mean([p.pq for p in self.acc_papers])
 
-    def update_ferror(self):
-        """ fraction of paper that get accepted while it shouldn't have """
+    def update_precision(self):
+        """ true good ones / accepted ones
+         """
         true_acc, _ = self.decide(self.receive_papers)
         if true_acc:
-            c_acc = set(self.acc_papers)
+            acc_set = set(self.acc_papers)
             correct = 0
             for p in true_acc:
-                if p in c_acc:
+                if p in acc_set:
                     correct += 1
-            self.ferror = 100 * (1 - correct / len(true_acc))
+            self.precision = 100 * correct / len(acc_set)
         else:
-            self.ferror = 0.
+            self.precision = 0.
 
     def update_herror(self):
         """ avg hamming distance error"""
@@ -127,4 +132,4 @@ class Conference:
                                                                  reverse=True))}
         actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=lambda item: item[1],
                                                                    reverse=True))}
-        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order]) if true_order else 0.
+        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order])
