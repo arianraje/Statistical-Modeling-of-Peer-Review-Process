@@ -54,6 +54,7 @@ class Scientist:
         my_score = self.review(self.paper)
         if conf.acc_papers:
             conf_avg_score = np.mean([self.review(p) for p in conf.acc_papers])
+            #belif = min(0.5, conf.prestige / 10.)
             self.belief = 1. / (1 + belif_c * math.exp(-my_score + conf_avg_score))
         else:
             self.belief = 1. if np.random.uniform() >= init_belief_pecent else 0.
