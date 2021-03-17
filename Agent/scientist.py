@@ -31,8 +31,8 @@ class Scientist:
         review a papers p, return the review result
         """
         mu = p.pq + self.bias
-        my_cap = self.paper.pq if p.topic in self.topic else 0.
-        sigma = min(max_abtry, abtry_c / abs(p.pq - 5)) + min(0.5, 1. / (theta_0 * self.experience + theta_1 * my_cap))
+        my_cap = self.resources if p.topic in self.topic else 0.
+        sigma = min(max_abtry, abtry_c / abs(p.pq - 5)) + min(max_cap, 1. / (theta_0 * self.experience + theta_1 * my_cap))
         r = np.random.normal(mu, sigma)
         if r > 10:
             r -= np.random.uniform(1, 1.5) * (r - 10)
@@ -54,8 +54,8 @@ class Scientist:
         my_score = self.review(self.paper)
         if conf.acc_papers:
             conf_avg_score = np.mean([self.review(p) for p in conf.acc_papers])
-            #belif = min(0.5, conf.prestige / 10.)
-            self.belief = 1. / (1 + belif_c * math.exp(-my_score + conf_avg_score))
+            belief = min(0.45, conf.prestige / 10.)
+            self.belief = 1. / (1 + belief * math.exp(-my_score + conf_avg_score))
         else:
             self.belief = 1. if np.random.uniform() >= init_belief_pecent else 0.
         return self.belief

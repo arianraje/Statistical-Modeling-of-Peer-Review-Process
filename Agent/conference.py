@@ -18,6 +18,7 @@ class Conference:
         self.agg_review_map = None
         self.precision = 0.
         self.herror = 0.
+        self.traj = {"quality": [], "num_of_paper": [], "precision": [], "hamming_error": [], "prestige": []}
 
     def reset(self):
         """ Reset conference """
@@ -104,8 +105,8 @@ class Conference:
     def update_prestige(self):
         """return the conference prestige"""
         rewd = float(self.reward) / self.prestige
-        acc_author_resources = gamma * np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
-        self.prestige = max(2.1, -alpha * self.ar + acc_author_resources)
+        acc_author_resources = np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
+        self.prestige = max(2.1, -alpha * self.ar + gamma * acc_author_resources)
         self.reward = self.prestige * rewd
 
     def calc_pq(self):
@@ -122,7 +123,7 @@ class Conference:
             for p in true_acc:
                 if p in acc_set:
                     correct += 1
-            self.precision = 100 * correct / len(acc_set)
+            self.precision = correct / len(acc_set)
         else:
             self.precision = 0.
 
