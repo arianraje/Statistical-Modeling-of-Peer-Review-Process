@@ -106,7 +106,7 @@ class Conference:
         """return the conference prestige"""
         rewd = float(self.reward) / self.prestige
         acc_author_resources = np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
-        self.prestige = max(2.1, -alpha * self.ar + gamma * acc_author_resources)
+        self.prestige = -alpha * self.ar + gamma * acc_author_resources
         self.reward = self.prestige * rewd
 
     def calc_pq(self):
