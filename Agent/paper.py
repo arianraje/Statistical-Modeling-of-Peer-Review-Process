@@ -9,9 +9,9 @@ class Paper:
         self.topic = topic
         self.pq = np.random.normal(self.author.resources, pq_sigma)
         if self.pq > 10:
-            self.pq -= np.random.uniform(1, 2) * (self.pq - 10)
+            self.pq = 10
         elif self.pq < 0:
-            self.pq -= np.random.uniform(1, 2) * self.pq
+            self.pq = 0
         self.review_results = []
         self.citation = 0
 

@@ -16,9 +16,9 @@ class Conference:
         self.reward = self.prestige * c_reward
         self.cost = c_cost
         self.agg_review_map = None
-        self.precision = 0.
-        self.herror = 0.
-        self.traj = {"quality": [], "num_of_paper": [], "precision": [], "hamming_error": [], "prestige": []}
+        #self.precision = 0.
+        #self.herror = 0.
+        #self.traj = {"quality": [], "num_of_paper": [], "precision": [], "hamming_error": [], "prestige": []}
 
     def reset(self):
         """ Reset conference """
@@ -38,10 +38,10 @@ class Conference:
         self.num_of_papers = len(self.receive_papers)
         return self.num_of_papers
 
-    def recuite_reviewers(self):
+    #def recruite_reviewers(self):
         """ Recruite reviewers, make sure that each paper provide N reviewers
         where N is the number of reviewers for each paper"""
-        pass
+        #pass
 
     def assign(self):
         """Assign the papers to reviewers, return a map from paper to reviewers"""
@@ -95,42 +95,42 @@ class Conference:
         """
         self.rej_papers = rej
 
-    def update(self):
+    #def update(self):
         """ Update results of this conference"""
-        self.update_prestige()
-        self.update_precision()
+        #self.update_prestige()
+        #self.update_precision()
         # self.update_recall()
-        self.update_herror()
+        #self.update_herror()
 
-    def update_prestige(self):
+    #def update_prestige(self):
         """return the conference prestige"""
-        rewd = float(self.reward) / self.prestige
-        acc_author_resources = np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
-        self.prestige = -alpha * self.ar + gamma * acc_author_resources
-        self.reward = self.prestige * rewd
+        #rewd = float(self.reward) / self.prestige
+        #acc_author_resources = np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
+        #self.prestige = -alpha * self.ar + gamma * acc_author_resources
+        #self.reward = self.prestige * rewd
 
     def calc_pq(self):
         """return the acc papers true quality"""
         return np.mean([p.pq for p in self.acc_papers])
 
-    def update_precision(self):
+    #def update_precision(self):
         """ true good ones / accepted ones
          """
-        true_acc, _ = self.decide(self.receive_papers)
-        if true_acc:
-            acc_set = set(self.acc_papers)
-            correct = 0
-            for p in true_acc:
-                if p in acc_set:
-                    correct += 1
-            self.precision = correct / len(acc_set)
-        else:
-            self.precision = 0.
+        #true_acc, _ = self.decide(self.receive_papers)
+        #if true_acc:
+            #acc_set = set(self.acc_papers)
+            #correct = 0
+            #for p in true_acc:
+                #if p in acc_set:
+                    #correct += 1
+            #self.precision = correct / len(acc_set)
+        #else:
+            #self.precision = 0.
 
-    def update_herror(self):
+    #def update_herror(self):
         """ avg hamming distance error"""
-        true_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.receive_papers.items(), key=lambda item: item[1],
-                                                                 reverse=True))}
-        actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=lambda item: item[1],
-                                                                   reverse=True))}
-        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order])
+        #true_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.receive_papers.items(), key=lambda item: item[1],
+                                                                 #reverse=True))}
+        #actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=lambda item: item[1],
+                                                                   #reverse=True))}
+        #self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order])

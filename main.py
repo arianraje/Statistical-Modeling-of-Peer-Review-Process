@@ -28,40 +28,48 @@ def make_plot(trajry):
 
 
 def main():
-    conf_lst = []
+    conf_list = []
     community = []
     traj = {"quality": [], "prestige": [], "num_of_paper": [], "precision": [], "hamming_error": []}
 
-    for i in range(NUM_CONF):
-        conf_lst.append(Conference(acceptance_rate, reward, cost))
-
+    #for i in range(NUM_CONF):
+        #conf_lst.append(Conference(acceptance_rate, reward, cost))
+    conf_list.append(Conference(acceptance_rate_1, reward, cost))
+    conf_list.append(Conference(acceptance_rate_2, reward, cost))
+    #conf_list.append(Conference(acceptance_rate_3, reward, cost))
+    #conf_list.append(Conference(acceptance_rate_4, reward, cost))
     for i in range(NUM_SCI):
         community.append(Scientist(topic=0))
 
-    for t in range(T):
-        for c in conf_lst:
-            c.call_for_papers(community)
-            reviewer_map = c.assign()
-            review_map = {}
-            for p in reviewer_map:
-                res = p.ask_for_review(reviewer_map[p])
-                review_map[p] = res
-            c.set_aggregated_review_map(review_map)
-            acc, rej = c.decide(c.agg_review_map)
-            c.notify_accept(acc)
-            c.notify_reject(rej)
-            c.update()
-            # store results of interest here
-            traj["quality"].append(c.calc_pq())
-            traj["prestige"].append(c.prestige)
-            traj["num_of_paper"].append(c.num_of_papers)
-            traj["precision"].append(c.precision)
-            traj["hamming_error"].append(c.herror)
-            c.reset()
+    for acc_1 in range(30, 80, 10): 
+        for acc_2 in range(30, 80, 10): 
+            conf_list.remove(conf_list[1])
+            conf_list.remove(conf_list[0])
+            conf_list.append(Conference(acc_1/100, reward, cost))
+            conf_list.append(Conference(acc_2/100, reward, cost))
+            scientist_submissions = []
+            for scientist in community: 
+                which_conf = scientist.submit(conf_list)
+                conf_list[which_conf].receive_papers[scientist.paper] = scientist.paper.pq
+                conf_list[which_conf].reviewers.append(scientist)
+                conf_list[which_conf].num_of_papers += 1
+            for c in conf_list: 
+                reviewer_map = c.assign()
+                review_map = {}
+                for p in reviewer_map:
+                    res = p.ask_for_review(reviewer_map[p])
+                    review_map[p] = res
+                c.set_aggregated_review_map(review_map)
+                acc, rej = c.decide(c.agg_review_map)
+                c.notify_accept(acc)
+                c.notify_reject(rej)
+                print("Conference Acceptance rate " + str(c.ar) + " : " + str(c.calc_pq()))
+            print()
+
 
     # plot the simulation results
-    print(traj)
-    make_plot(traj)
+    #print(traj)
+    #make_plot(traj)
 
 
 if __name__ == '__main__':

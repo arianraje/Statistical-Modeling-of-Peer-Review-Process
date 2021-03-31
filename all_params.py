@@ -7,11 +7,11 @@ pq_sigma = 1.
 
 # main
 NUM_SCI = 3000
-NUM_CONF = 1
+NUM_CONF = 2
 T = 11
 
-# conf
-acceptance_rate = 0.75
+# conference 1
+acceptance_rate_1 = 0.3
 reward = 1.
 cost = 1.
 init_prestige = 5.
@@ -19,6 +19,16 @@ alpha = 6.
 beta = 0.
 gamma = 1.
 N = 1
+
+#conference 2
+acceptance_rate_2 = 0.6
+
+#conference 3
+acceptance_rate_3 = 0.1
+
+#conference 4 
+acceptance_rate_4 = 0.9
+
 
 # scientist
 r_mean = 5.
