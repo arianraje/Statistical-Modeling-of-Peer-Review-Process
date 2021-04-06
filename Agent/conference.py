@@ -133,4 +133,4 @@ class Conference:
                                                                  reverse=True))}
         actual_order = {p: r + 1 for r, (p, q) in enumerate(sorted(self.agg_review_map.items(), key=lambda item: item[1],
                                                                    reverse=True))}
-        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order])
+        self.herror = np.mean([abs(true_order[p] - actual_order[p]) for p in true_order]) / len(true_order)
