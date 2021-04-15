@@ -21,18 +21,13 @@ class Scientist:
             self.resources = 10
         elif self.resources < 0:
             self.resources = 0
-
-        self.experience = 0
         self.topic = {topic}
-        #self.bias = np.random.normal(b_mean, b_sigma)
 
     def review(self, p: Paper):
         """
         review a papers p, return the review result
         """
-        #mu = p.pq + self.bias
         my_cap = self.resources if p.topic in self.topic else 0.
-        #sigma = min(max_abtry, abtry_c / abs(p.pq - 5)) + min(max_cap, 1. / (theta_0 * self.experience + theta_1 * my_cap))
         r = np.random.normal(p.pq, 1)
         if r > 10:
             r = 10
@@ -52,16 +47,14 @@ class Scientist:
         update the belief according to my paper mp, and last year's published papers cp
         """
         my_score = self.review(self.paper)
-        """if conf.acc_papers:
-            conf_avg_score = np.mean([ for p in conf.acc_papers])
-            belief = min(0.45, conf.prestige / 10.)
-            self.belief = 1. / (1 + belief * math.exp(-my_score + conf_avg_score))
-        else:
-            self.belief = 1. if np.random.uniform() >= init_belief_pecent else 0.""" 
-        self.belief = my_score - (-10*conf.ar + 10)
-        return self.belief
+        if conf.prev_conf_pq == 0:
+            self.belief = my_score - (-10*conf.ar + 10)
+            return self.belief
+        else: 
+            self.belief = my_score - (conf.prev_conf_pq)
+            return self.belief 
 
-    def submit(self, conferences):
+    def submit(self, conferences, must_submit: bool):
         """
         decide whether to submit a paper to conference conf, return bool
         """
@@ -71,6 +64,7 @@ class Scientist:
         rewards = []
         costs = []
         norm = []
+        overall = 0
         for i in range(len(conferences)): 
             succ_probs.append(self.calculate_belief(conferences[i])); 
             rewards.append(-10*conferences[i].ar + 10)
@@ -79,14 +73,13 @@ class Scientist:
             norm.append(succ_probs[i] + rewards[i] - costs[i])
         max_val = max(norm)
         max_conf = norm.index(max_val)
-        """submissions = []
-        for i in range(len(conferences)): 
-            if i == max_conf: 
-                submissions.append(True)
+        if (must_submit):
+            if max_val < 0: 
+                return -1
             else: 
-                submissions.append(False)
-        return submissions""" 
-        return max_conf
+                return max_conf
+        else: 
+            return max_conf
 
     def resubmit(self):
         """
