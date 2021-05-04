@@ -6,28 +6,6 @@ import numpy as np
 import time
 
 
-def make_plot(trajry):
-    """plot the simulation results"""
-    t = range(T)
-    plt.subplot(2, 2, 1)
-    plt.xlabel("year")
-    plt.plot(t, trajry['quality'])
-    plt.title("accepted paper instrinsic quality")
-    plt.subplot(2, 2, 2)
-    plt.plot(t, trajry['prestige'])
-    plt.title("conference prestige")
-    plt.subplots_adjust(hspace=0.5)
-    plt.subplot(2, 2, 3)
-    plt.plot(t, trajry['num_of_paper'])
-    plt.title("number of submitted paper")
-    plt.subplot(2, 2, 4)
-    linef, = plt.plot(t, trajry['precision'])
-    lineh, = plt.plot(t, trajry['hamming_error'])
-    plt.title("Eval")
-    plt.legend((linef, lineh), ("precision (%)", "avg hamming error"))
-    plt.show()
-
-
 def one_conf():
     """ independent conferences scenerio"""
     conf_lst = []
@@ -56,40 +34,58 @@ def one_conf():
             c.traj["quality"].append(c.calc_pq())
             c.traj["prestige"].append(c.prestige)
             c.traj["num_of_paper"].append(c.num_of_papers)
-            c.traj["precision"].append(c.precision)
-            c.traj["hamming_error"].append(c.herror)
+            # c.traj["precision"].append(c.precision)
+            # c.traj["hamming_error"].append(c.herror)
             c.reset()
 
             # plot the simulation results
-            if t == 20:
+            if t == T - 1:
                 print(c.traj)
-                make_plot(c.traj)
 
 
 def max_gain():
     """ submit to the conf that max the gain"""
     conf_lst = []
     community = []
-    ar = [0.2, 0.2]
+    ar = [0.2, 0.7]
     for i in range(NUM_CONF):
         conf_lst.append(Conference(ar[i], reward, cost))
 
     for i in range(NUM_SCI):
         community.append(Scientist(topic=0))
+
     for t in range(T):
-        print(t)
+        print("time: %d ==================================================" % t)
+
         for sci in community:
             c = sci.decide(conf_lst)
             if c:
                 sci.experience += 1
                 c.receive_papers[sci.paper] = sci.paper.pq
                 c.reviewers.append(sci)
-        #a = np.asarray([p.paper.pq for p in community])
-        #print(np.sum(np.where(a > 8, 1, 0)))
-        #print(np.sum(np.where(a > 9, 1, 0)))
-        #print(np.sum(np.where(a > 7, 1, 0)))
 
         for c in conf_lst:
+            c.receive_paper_stats[">9"].append(np.sum(np.where(np.asarray([p.pq for p in c.receive_papers]) > 9, 1, 0)))
+            c.receive_paper_stats[">8"].append(np.sum(np.where(np.asarray([p.pq for p in c.receive_papers]) > 8, 1, 0)))
+            c.receive_paper_stats[">7"].append(np.sum(np.where(np.asarray([p.pq for p in c.receive_papers]) > 7, 1, 0)))
+            c.receive_paper_stats[">6"].append(np.sum(np.where(np.asarray([p.pq for p in c.receive_papers]) > 6, 1, 0)))
+            c.receive_paper_stats[">5"].append(np.sum(np.where(np.asarray([p.pq for p in c.receive_papers]) > 5, 1, 0)))
+            c.receive_paper_stats["<=5"].append(
+                np.sum(np.where(np.asarray([p.pq for p in c.receive_papers]) > 0, 1, 0)))
+
+            c.receive_author_stats[">9"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.receive_papers]) > 9, 1, 0)))
+            c.receive_author_stats[">8"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.receive_papers]) > 8, 1, 0)))
+            c.receive_author_stats[">7"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.receive_papers]) > 7, 1, 0)))
+            c.receive_author_stats[">6"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.receive_papers]) > 6, 1, 0)))
+            c.receive_author_stats[">5"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.receive_papers]) > 5, 1, 0)))
+            c.receive_author_stats["<=5"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.receive_papers]) > 0, 1, 0)))
+
             c.num_of_papers = len(c.receive_papers)
             reviewer_map = c.assign()
             review_map = {}
@@ -100,19 +96,49 @@ def max_gain():
             acc, rej = c.decide(c.agg_review_map)
             c.notify_accept(acc)
             c.notify_reject(rej)
-            c.update()
+
+            c.acc_paper_stats[">9"].append(np.sum(np.where(np.asarray([p.pq for p in c.acc_papers]) > 9, 1, 0)))
+            c.acc_paper_stats[">8"].append(np.sum(np.where(np.asarray([p.pq for p in c.acc_papers]) > 8, 1, 0)))
+            c.acc_paper_stats[">7"].append(np.sum(np.where(np.asarray([p.pq for p in c.acc_papers]) > 7, 1, 0)))
+            c.acc_paper_stats[">6"].append(np.sum(np.where(np.asarray([p.pq for p in c.acc_papers]) > 6, 1, 0)))
+            c.acc_paper_stats[">5"].append(np.sum(np.where(np.asarray([p.pq for p in c.acc_papers]) > 5, 1, 0)))
+            c.acc_paper_stats["<=5"].append(np.sum(np.where(np.asarray([p.pq for p in c.acc_papers]) > 0, 1, 0)))
+
+            c.acc_author_stats[">9"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.acc_papers]) > 9, 1, 0)))
+            c.acc_author_stats[">8"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.acc_papers]) > 8, 1, 0)))
+            c.acc_author_stats[">7"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.acc_papers]) > 7, 1, 0)))
+            c.acc_author_stats[">6"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.acc_papers]) > 6, 1, 0)))
+            c.acc_author_stats[">5"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.acc_papers]) > 5, 1, 0)))
+            c.acc_author_stats["<=5"].append(
+                np.sum(np.where(np.asarray([p.author.resources for p in c.acc_papers]) > 0, 1, 0)))
+
+            if t == 25:
+                conf_lst[1].changeAr(0.5)
+
+            if t == 50:
+                conf_lst[1].changeAr(0.3)
+
+            if t == 80:
+                conf_lst[1].changeAr(0.1)
+
+            c.update(t)
+
             # store results of interest here
-            c.traj["quality"].append(c.calc_pq())
             c.traj["prestige"].append(c.prestige)
             c.traj["num_of_paper"].append(c.num_of_papers)
-            c.traj["precision"].append(c.precision)
-            c.traj["hamming_error"].append(c.herror)
-            #print(c.calc_pq())
-            #print("num: %d" % len(c.receive_papers))
-            #print([(p.paper.pq, p.calculate_belief(c), c.reward, c.cost) for p in community])
+            print("quality: %f" % c.traj["quality"][-1])
+            print("num: %d" % c.traj["num_of_paper"][-1])
+            print("pres: %f" % c.traj["prestige"][-1])
+            # c.traj["precision"].append(c.precision)
+            # c.traj["hamming_error"].append(c.herror)
             c.reset()
-            if t == 20:
-                print(c.traj)
+
+    return conf_lst[0], conf_lst[1]
 
 
 if __name__ == '__main__':

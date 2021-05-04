@@ -2,23 +2,30 @@ import numpy as np
 import math
 from all_params import *
 
-
 class Conference:
     """A instance of a conference"""
     def __init__(self, acc_rate, c_reward, c_cost):
         self.ar = acc_rate
         self.num_of_papers = 0
-        self.prestige = init_prestige
+        self.prestige = (1-self.ar) * 10 / 1.2
         self.acc_papers = []
         self.rej_papers = []
         self.receive_papers = {}
         self.reviewers = []
-        self.reward = self.prestige * c_reward
+        self.reward = c_reward
         self.cost = c_cost
         self.agg_review_map = None
         self.precision = 0.
         self.herror = 0.
-        self.traj = {"quality": [], "num_of_paper": [], "precision": [], "hamming_error": [], "prestige": []}
+        self.traj = {"quality": [], "num_of_paper": [], "prestige": [], "precision": [], "hamming_error": [], "var":[], "author_res":[]}
+        self.year = 1
+        self.receive_paper_stats = {">9":[], ">8":[], ">7":[], ">6":[], ">5":[], "<=5":[]}
+        self.receive_author_stats = {">9":[], ">8":[], ">7":[], ">6":[], ">5":[], "<=5":[]}
+        self.acc_paper_stats = {">9":[], ">8":[], ">7":[], ">6":[], ">5":[], "<=5":[]}
+        self.acc_author_stats = {">9":[], ">8":[], ">7":[], ">6":[], ">5":[], "<=5":[]}
+
+    def changeAr(self, ar):
+        self.ar = ar
 
     def reset(self):
         """ Reset conference """
@@ -63,7 +70,7 @@ class Conference:
         peer_review_results = list(agg_review_map.values())
         if not peer_review_results:
             return [], []
-        cutoff = np.percentile(list(agg_review_map.values()), (1 - self.ar) * 100)
+        cutoff = np.percentile(peer_review_results, (1 - self.ar) * 100)
         middle_set = []
         acc_papers = []
         rej_papers = []
@@ -95,23 +102,22 @@ class Conference:
         """
         self.rej_papers = rej
 
-    def update(self):
+    def update(self, t):
         """ Update results of this conference"""
-        self.update_prestige()
-        self.update_precision()
-        # self.update_recall()
-        self.update_herror()
+        self.update_prestige(t)
+        #self.update_precision()
+        #self.update_recall()
+        #self.update_herror()
+        self.year += 1
 
-    def update_prestige(self):
+    def update_prestige(self, t):
         """return the conference prestige"""
-        rewd = float(self.reward) / self.prestige
-        acc_author_resources = np.mean([p.author.resources for p in self.acc_papers]) if self.acc_papers else 0
-        self.prestige = -alpha * self.ar + gamma * acc_author_resources
-        self.reward = self.prestige * rewd
+        acc_pq = np.mean([p.pq for p in self.acc_papers])
+        acc_author_resources = np.mean([p.author.resources for p in self.acc_papers])
+        self.prestige = -alpha * self.ar + gamma * acc_author_resources + eta * acc_pq
 
-    def calc_pq(self):
-        """return the acc papers true quality"""
-        return np.mean([p.pq for p in self.acc_papers])
+        self.traj["quality"].append(acc_pq)
+        self.traj["author_res"].append(acc_author_resources)
 
     def update_precision(self):
         """ true good ones / accepted ones
