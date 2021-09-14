@@ -10,15 +10,19 @@ def one_conf():
     """ independent conferences scenerio"""
     conf_lst = []
     community = []
-    for i in range(NUM_CONF):
-        conf_lst.append(Conference(acceptance_rate, reward, cost))
-
+    ar = [0.2, 0.4, 0.6, 0.7, 0.8]
+    for i in range(5):
+        conf_lst.append(Conference(ar[i], reward, cost))
+    
     for i in range(NUM_SCI):
-        community.append(Scientist(topic=0))
-
+        r = (i+1) **(-0.12) *10 # zipf
+        #r = np.random.normal(5, 1.5)
+        community.append(Scientist(r, topic=0))
+    
     for t in range(T):
         print(t)
         for c in conf_lst:
+            c.reset()
             c.call_for_papers(community)
             reviewer_map = c.assign()
             review_map = {}
@@ -26,21 +30,14 @@ def one_conf():
                 res = p.ask_for_review(reviewer_map[p])
                 review_map[p] = res
             c.set_aggregated_review_map(review_map)
+            #print(review_map)
             acc, rej = c.decide(c.agg_review_map)
             c.notify_accept(acc)
             c.notify_reject(rej)
             c.update()
-            # store results of interest here
-            c.traj["quality"].append(c.calc_pq())
-            c.traj["prestige"].append(c.prestige)
-            c.traj["num_of_paper"].append(c.num_of_papers)
-            # c.traj["precision"].append(c.precision)
-            # c.traj["hamming_error"].append(c.herror)
-            c.reset()
 
-            # plot the simulation results
-            if t == T - 1:
-                print(c.traj)
+    # plot the simulation results
+    return conf_lst
 
 
 def max_gain():
